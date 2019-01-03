@@ -37,3 +37,19 @@ void CUR_MOVE(int x, int y)
 }
 
 
+typedef struct CHARACTER
+{
+	char Title[32];
+	bool isTown;
+	int Atk;
+	int Def;
+	int Hp;
+	int Hp_MAX;
+	int Fame;
+	int Exp;
+	int Cur_pos_x;
+	int Cur_pos_y;
+	int Next_pos_x;
+	int Shape;
+	int COLOR;
+} CHARACTER;
