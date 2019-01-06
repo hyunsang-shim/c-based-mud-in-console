@@ -106,7 +106,7 @@ void showPrologue()
 
 		if (cnt > SCREEN_ROW - 2)
 		{
-			printf("\n\t\tpress any Key to continue...");
+			printf("\n\t\tpress any key to continue...");
 			tmp = _getch();
 			if (tmp)
 			{
