@@ -44,8 +44,6 @@ typedef struct struct_player{
 	int Def;
 	int HP;
 	int HP_MAX; 
-	char name[32];
-	char title[32];
 	int fame;
 	int exp;
 	int shape;
@@ -72,3 +70,30 @@ typedef struct struct_monster {
 	int nextPOSX;
 	int nextPOSY;
 } MOB_CHARACTER;
+
+struct strChurch {
+	int cntVisit;
+	bool isVisited = false;
+};
+
+struct strGym {
+	int cntVisit;
+	int nHpUpgradeDone;
+	int cntAtkUpgradeDone;
+	int cntSpdUpgradeDone;
+};
+
+struct strBlacksmith {
+	int cntVisited;
+	int nBlacksmithLevel;
+};
+
+
+typedef struct struct_town
+{
+	int			  cntVisit;
+	strChurch	  CHURCH;
+	strGym		  GYM;
+	strBlacksmith BLACKSMITH;
+	
+} TOWN;
