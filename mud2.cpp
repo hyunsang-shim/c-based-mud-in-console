@@ -2,23 +2,17 @@
 //
 
 #include "stdafx.h"
-#include "mud.h"
+#include "console_game.h"
 
-const int MSG_DELAY = 600;
-const int SCREEN_ROW = 17;
-const int SCREEN_COL = 52;
-const int BATTLE_CONTINUE = 0;
-const int BATTLE_WIN = 1;
-const int BATTLE_LOSE = -1;
-const int PC_HP_MAX = 999;
-const int PC_ATK_MAX = 999;
-const int MSG_ROOT_BATTLE = 7;
-const int MSG_ROOT_TOWN = 13;
-const int MSG_ROOT_MAX = 14;
+bool isSaveFileLoaded = false;
+bool showPrologue = false;
+FILE *fpSaveFile = 0;
 
-int LAST_MSG_ROW = MSG_ROOT_BATTLE;
-int Battle_Result = BATTLE_CONTINUE;
-bool isVisible = true;
+// methods
+bool Initialize();
+bool Setup_GameWindow();
+bool LoadSaveFile();
+bool initPlayerData(OUT PC_CHARACTER *statPlayer);
 
 
 
@@ -148,8 +142,8 @@ CHARACTER* SetPlayer()
 
 CHARACTER* SetMob()
 {
-	CHARACTER *p = (CHARACTER*)malloc(sizeof(CHARACTER));
-	FILE *fpStat_m = NULL;
+	// initialize game
+	Initialize();
 
 	//앞부분 보이기
 	fopen_s(&fpStat_m, ".\\dat\\status.mob", "r");
@@ -166,34 +160,11 @@ CHARACTER* SetMob()
 	return p;
 }
 
-void ShowMap(char* Map)
+
+bool Initialize()
 {
-	system("cls");
-	fseek(stdin, 0, SEEK_END);
-
-	FILE *fpMap = NULL;
-	char Buffer[512] = { "0" };
-
-	//맵을 읽어온다.
-	fopen_s(&fpMap, Map, "r");
-
-	if (fpMap == NULL)
-		return;
-
-	SetTxtColor(DEFAULT_COLOR);
-	while (fgets(Buffer, sizeof(Buffer), fpMap))
-	{
-		printf("%s", Buffer);
-		memset(Buffer, 0, sizeof(Buffer));
-	}
-	putchar('\n');
-
-	fclose(fpMap);
-
-}
-
-void drawInfo(CHARACTER PC, CHARACTER MOB, bool isTown)
-{
+	// set game console window
+	Setup_GameWindow();
 
 	if (isTown == false)
 	{
@@ -234,21 +205,12 @@ void drawInfo(CHARACTER PC, CHARACTER MOB, bool isTown)
 	}
 
 
-	/*
-	printf("%s\n공 %d\n방 %d\nHP %d\n명성 %d\n현재X %d\n현재 Y%d\n다음 X%d\n표시 %c\n",
-	PC.Title, PC.Atk, PC.Def, PC.Hp,
-	PC.Fame, PC.Cur_pos_x, PC.Cur_pos_y,
-	PC.Next_pos_x, PC.Shape);
+	// if none, set showPrologue flag on 
 
 
-	printf("%s\n공 %d\n방 %d\nHP %d\n명성 %d\n현재X %d\n현재 Y%d\n다음 X%d\n표시 %c\n",
-	MOB.Title, MOB.Atk, MOB.Def, MOB.Hp,
-	MOB.Fame, MOB.Cur_pos_x, MOB.Cur_pos_y,
-	MOB.Next_pos_x, MOB.Shape);
-	*/
 }
 
-void ATTACK(CHARACTER* PC, CHARACTER* MOB, bool isAttack_PC, bool isAttack_MOB, int* ROWS)
+bool Setup_GameWindow()
 {
 
 	CLEAR_MSG(false);
@@ -359,20 +321,10 @@ void ATTACK(CHARACTER* PC, CHARACTER* MOB, bool isAttack_PC, bool isAttack_MOB, 
 	LAST_MSG_ROW = MSG_ROOT_BATTLE;
 }
 
-void MOVE_CHAR(CHARACTER* PC)
+bool LoadSaveFile()
 {
-	CUR_MOVE(PC->Cur_pos_x, PC->Cur_pos_y);
-	SetTxtColor(0);
-	CUR_MOVE(PC->Cur_pos_x, PC->Cur_pos_y);
-	printf(" ");
-	PC->Cur_pos_x = PC->Next_pos_x;
-	CUR_MOVE(PC->Cur_pos_x, PC->Cur_pos_y);
-	SetTxtColor(PC->COLOR);
-	printf("%c", PC->Shape);
-	SetTxtColor(DEFAULT_COLOR);
-	CUR_MOVE(PC->Cur_pos_x, PC->Cur_pos_y);
 
-}
+	fopen_s(&fpSaveFile, "./mud.sav", "r");
 
 void MOVE_CHAR(CHARACTER* PC, CHARACTER *MOB)
 {
@@ -652,8 +604,10 @@ void Shop_Menu(CHARACTER *PC, CHARACTER *MOB, int idx, bool *isTown)
 	}
 }
 
-void Update_Info(CHARACTER* PC, CHARACTER* MOB)
+bool initPlayerData(OUT PC_CHARACTER *p)
 {
+	PC_CHARACTER *p = (PC_CHARACTER*)malloc(sizeof(PC_CHARACTER));
+	FILE *fpStatus = 0;
 
 	//HP 계산
 	double MOB_cur = MOB->Hp;
@@ -684,7 +638,8 @@ void Update_Info(CHARACTER* PC, CHARACTER* MOB)
 	CUR_MOVE(1, 17);
 	printf("PC remain : %d, %d칸\nMOB remain: %d, %d칸", PC->Hp, PC_HP_ON, MOB->Hp, MOB_HP_ON);
 
-#endif DEBUG	
+	if (fpStatus == 0)
+		printf("Cannot find target file!");
 
 
 	//HP 그리기
@@ -703,24 +658,15 @@ void Update_Info(CHARACTER* PC, CHARACTER* MOB)
 		printf("%c", 219);
 
 
-	CUR_MOVE(28, 3);
 
 	SetTxtColor(LIGHTRED);
 	for (int mob_cur = 0; mob_cur < MOB_HP_ON; mob_cur++)
 		printf("%c", 219);
 
-	SetTxtColor(RED);
-	if (MOB->Hp <= 0)
-		for (int mob_loss = 0; mob_loss < 10; mob_loss++)
-			printf("%c", 176);
-	else
-		for (int mob_loss = 0; mob_loss < 10 - MOB_HP_ON; mob_loss++)
-			printf("%c", 176);
-
-	CUR_MOVE(PC->Cur_pos_x, PC->Cur_pos_y);
+	return p;
 }
 
-void GAME_OVER()
+void SaveFile(IN PC_CHARACTER* player, IN MOB_CHARACTER* mob, IN TOWN* town)
 {
 	system("cls");
 	int tmp;
@@ -1021,5 +967,11 @@ int main()
 
 }
 
+	fopen_s(&SaveData, "1waylife.sav", "wb");
 
+	fprintf(SaveData, "%s %s %d %d %d %d %s %s %d %d %d %d %d %d %d %d",
+		player->name, player->title, player->Atk, player->Def, player->HP,
+		player->HP_MAX, player->fame, player->exp, player->shape, player->color,
+		player->curPOSX, player->curPOSY, player->nextPOSX, player->nextPOSY);
 
+}
