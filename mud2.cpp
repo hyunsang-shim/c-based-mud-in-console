@@ -22,7 +22,6 @@ bool isVisible = true;
 
 
 
-
 void CLEAR_MSG(bool isTown)
 {
 	if (isTown == false)
@@ -60,7 +59,7 @@ void showTitle()
 	char Buffer[512] = { "0" };
 
 	//앞부분 보이기
-	fopen_s(&fpTitle, ".\\Title.dat", "r");
+	fopen_s(&fpTitle, ".\\dat\\Title.dat", "r");
 
 	if (fpTitle == NULL)
 		return;
@@ -73,7 +72,7 @@ void showTitle()
 	putchar('\n');
 
 
-	printf("\n\t\tpress any Key to continue...");
+	printf("\t\t\t\tPress Any Key");
 	int tmp = _getch();
 	fseek(stdin, 0, SEEK_END);
 	fclose(fpTitle);
@@ -86,7 +85,7 @@ void showPrologue()
 	char Buffer[512] = { "0" };
 
 	//앞부분 보이기
-	fopen_s(&fpPrologue, ".\\Prologue.dat", "r");
+	fopen_s(&fpPrologue, ".\\dat\\Prologue.dat", "r");
 
 	if (fpPrologue == NULL)
 		return;
@@ -106,7 +105,7 @@ void showPrologue()
 
 		if (cnt > SCREEN_ROW - 2)
 		{
-			printf("\n\t\tpress any Key to continue...");
+			printf("\n\t\t\t\tPress Any Key");
 			tmp = _getch();
 			if (tmp)
 			{
@@ -118,7 +117,7 @@ void showPrologue()
 	}
 	putchar('\n');
 
-	printf("\t\t\tpress any Key to continue...");
+	printf("\t\t\t\tPress Any Key");
 	int tmp = _getch();
 	fseek(stdin, 0, SEEK_END);
 
@@ -130,13 +129,13 @@ CHARACTER* SetPlayer()
 	CHARACTER *p = (CHARACTER*)malloc(sizeof(CHARACTER));
 	FILE *fpStat = NULL;
 
-	fopen_s(&fpStat, ".\\mud.sav", "r");
+	fopen_s(&fpStat, ".\\dat\\mud.sav", "r");
 
 	if (fpStat == NULL)
-		fopen_s(&fpStat, ".\\status.pc", "r");
+		fopen_s(&fpStat, ".\\dat\\status.pc", "r");
 
 	if (fpStat == NULL)
-		printf("Cannot fild target file!");
+		printf("파일을 읽을 수 없습니다");
 
 	fscanf_s(fpStat, "%s", p->Title, sizeof(p->Title));
 	fscanf_s(fpStat, "%d %d %d %d %d %d %d %d %d %d %d %d",
@@ -153,10 +152,10 @@ CHARACTER* SetMob()
 	FILE *fpStat_m = NULL;
 
 	//앞부분 보이기
-	fopen_s(&fpStat_m, ".\\status.mob", "r");
+	fopen_s(&fpStat_m, ".\\dat\\status.mob", "r");
 
 	if (fpStat_m == NULL)
-		printf("Couldn't find the monster data!");
+		printf(".\\dat\\Battle.map 파일을 읽을 수 없습니다");
 
 	fscanf_s(fpStat_m, "%s", p->Title, sizeof(p->Title));
 	fscanf_s(fpStat_m, "%d %d %d %d %d %d %d %d %d %d %d %d",
@@ -210,12 +209,12 @@ void drawInfo(CHARACTER PC, CHARACTER MOB, bool isTown)
 		CUR_MOVE(4, 3);
 		SetTxtColor(LIGHTRED);
 		for (int i = 0; i < 10; i++)
-			printf("%c", 178);
+			printf("%c", 219);
 
 		CUR_MOVE(28, 3);
 		SetTxtColor(LIGHTRED);
 		for (int i = 0; i < 10; i++)
-			printf("%c", 178);
+			printf("%c", 219);
 	}
 	else
 	{
@@ -252,27 +251,26 @@ void drawInfo(CHARACTER PC, CHARACTER MOB, bool isTown)
 void ATTACK(CHARACTER* PC, CHARACTER* MOB, bool isAttack_PC, bool isAttack_MOB, int* ROWS)
 {
 
-	CLEAR_MSG;(false);
-	// attack: player -> monster
+	CLEAR_MSG(false);
+	//PC 공격 처리	
 	if (isAttack_PC)
 	{
 		CUR_MOVE(2, *ROWS);
 		SetTxtColor(PC->COLOR);
 		printf("%s", PC->Title);
 		SetTxtColor(DEFAULT_COLOR);
-		printf(" Attacked!!");
+		printf("'s Attack!");
 		LAST_MSG_ROW++;
 		Sleep(150);
 		CUR_MOVE(2, *ROWS);
-
+		SetTxtColor(MOB->COLOR);
+		printf("%s", MOB->Title);
+		SetTxtColor(DEFAULT_COLOR);
+		printf("got ");
 		SetTxtColor(DMG_COLOR);
 		printf("%d ", PC->Atk - MOB->Def);
 		SetTxtColor(DEFAULT_COLOR);
-		printf("Damage to ");
-		SetTxtColor(MOB->COLOR);
-		printf("%s!!", MOB->Title);
-		
-		
+		printf("Damage!");
 		LAST_MSG_ROW++;
 
 		MOB->Hp -= PC->Atk - MOB->Def;
@@ -281,47 +279,45 @@ void ATTACK(CHARACTER* PC, CHARACTER* MOB, bool isAttack_PC, bool isAttack_MOB, 
 		if (MOB->Hp <= 0)
 		{
 			CUR_MOVE(2, *ROWS);
-
 			SetTxtColor(DEFAULT_COLOR);
-			printf("Killed ");
+			printf("You Killed "); 
 			SetTxtColor(MOB->COLOR);
-			printf("%s!!", MOB->Title);
+			printf("%s!", MOB->Title);
 			LAST_MSG_ROW++;
+
 			Sleep(250);
 			CUR_MOVE(2, *ROWS);
 			printf("                                                ");
 			CUR_MOVE(2, *ROWS);
-			SetTxtColor(DEFAULT_COLOR);
-			printf("Got ");
 			SetTxtColor(YELLOW);
-			printf("%d ", MOB->Fame);
+			printf("%d", MOB->Fame);
 			SetTxtColor(DEFAULT_COLOR);
-			printf("of Fame");
+			printf("Fame Gained.");
 			PC->Fame += MOB->Fame;
 			LAST_MSG_ROW++;
+
 			Sleep(250);
 			CUR_MOVE(2, *ROWS);
 			printf("                                                ");
 			CUR_MOVE(2, *ROWS);
-
-			SetTxtColor(DEFAULT_COLOR);
-			printf("Gained "); 
 			SetTxtColor(SKYBLUE);
-			printf("%d ", MOB->Exp);
+			printf("%d", MOB->Exp);
 			PC->Exp += MOB->Exp;
 			SetTxtColor(DEFAULT_COLOR);
-			printf("Xp.");
+			printf("Xp Gained.");
 			Sleep(250);
 			LAST_MSG_ROW++;
+
 			CUR_MOVE(2, *ROWS);
 			printf("                                                ");
 			CUR_MOVE(2, *ROWS);
 			SetTxtColor(PC->COLOR);
-			printf("You : phew... What a day...");
+			printf("You : *Pew* What a day");
 			Sleep(MSG_DELAY);
 			LAST_MSG_ROW++;
+
 			CUR_MOVE(2, *ROWS);
-			printf("      Now, let's beck to town.");
+			printf("       Time to go home.");
 			LAST_MSG_ROW++;
 			Sleep(MSG_DELAY);
 			SetTxtColor(DEFAULT_COLOR);
@@ -329,25 +325,25 @@ void ATTACK(CHARACTER* PC, CHARACTER* MOB, bool isAttack_PC, bool isAttack_MOB, 
 		}
 	}
 
-	// Attack: Monster -> Player
+	//MOB 공격 처리
 	if (Battle_Result == BATTLE_CONTINUE && isAttack_MOB)
 	{
 		CUR_MOVE(2, *ROWS);
 		SetTxtColor(MOB->COLOR);
 		printf("%s", MOB->Title);
 		SetTxtColor(DEFAULT_COLOR);
-		printf(" Attacked!!");
+		printf("'s Attack!");
 		LAST_MSG_ROW++;
 		Sleep(150);
 		CUR_MOVE(2, *ROWS);
 		SetTxtColor(PC->COLOR);
-		printf("%s ", PC->Title);
+		printf("%s", PC->Title);
 		SetTxtColor(DEFAULT_COLOR);
-		printf("dealt ");
+		printf("got");
 		SetTxtColor(DMG_COLOR);
 		printf("%d", MOB->Atk - PC->Def);
 		SetTxtColor(DEFAULT_COLOR);
-		printf("Damage on you!!");
+		printf(" Damage!");
 		LAST_MSG_ROW++;
 		PC->Hp -= MOB->Atk - PC->Def;
 
@@ -380,7 +376,7 @@ void MOVE_CHAR(CHARACTER* PC)
 
 void MOVE_CHAR(CHARACTER* PC, CHARACTER *MOB)
 {
-	// if PC is alive, then moves.
+	//PC가 살아있으면 움직인다.
 	if (PC->Hp >= 1)
 	{
 		CUR_MOVE(PC->Cur_pos_x, PC->Cur_pos_y);
@@ -402,11 +398,11 @@ void MOVE_CHAR(CHARACTER* PC, CHARACTER *MOB)
 		PC->Cur_pos_x = PC->Next_pos_x;
 		CUR_MOVE(PC->Cur_pos_x, PC->Cur_pos_y);
 		SetTxtColor(PC->COLOR);
-		printf("*");	// corpse
+		printf("*");	//시체
 		SetTxtColor(DEFAULT_COLOR);
 	}
 
-	// Monster lives, then move
+	//몹이 살아있으면 움직인다.
 	if (MOB->Hp >= 0)
 	{
 		CUR_MOVE(MOB->Cur_pos_x, PC->Cur_pos_y);
@@ -428,7 +424,7 @@ void MOVE_CHAR(CHARACTER* PC, CHARACTER *MOB)
 		MOB->Cur_pos_x = MOB->Next_pos_x;
 		CUR_MOVE(MOB->Cur_pos_x, PC->Cur_pos_y);
 		SetTxtColor(MOB->COLOR);
-		printf("*");	// corpse
+		printf("*");	//시체
 		SetTxtColor(DEFAULT_COLOR);
 	}
 
@@ -443,23 +439,21 @@ void Shop_Menu(CHARACTER *PC, CHARACTER *MOB, int idx, bool *isTown)
 
 	switch (idx)
 	{
-	case 0:	//church
+	case 0:	//교회
 		if (PC->Hp == PC->Hp_MAX)
 		{
 			CLEAR_MSG(true);
 			CUR_MOVE(2, 13);
 			SetTxtColor(LIGHTWHITE);
-			printf("Priest: Get some rest. you're worthy. ");
+			printf("Priest : May the God Bless you.");
 		}
 		else
 		{
 			CLEAR_MSG(true);
 			CUR_MOVE(2, 13);
 			SetTxtColor(LIGHTWHITE);
-			printf("Priest: The Divine will heal you up.");
-			CUR_MOVE(2, 14);
-			SetTxtColor(DEFAULT_COLOR);
-			printf("You are Fully Healed!!");
+			printf("Priest : God, I beg your Mercy on this pitty...");
+
 			SHOW_CUR(false);
 			for (int i = PC->Hp; i <= PC->Hp_MAX; i++)
 			{
@@ -475,12 +469,17 @@ void Shop_Menu(CHARACTER *PC, CHARACTER *MOB, int idx, bool *isTown)
 				PC->Hp = i;
 				printf("%3d", i);
 
-				// Slows down when it get's close to the Full
+				//HP가 채워지면서 점점 느려지게
 				static double spd = 0;
 				spd = (double)((double)PC->Hp * 100 / (double)PC->Hp_MAX / 20);
 				spd < 100 ? spd = 50 : spd = spd;
 				Sleep(spd);
 			}
+
+			CUR_MOVE(2, 14);
+			SetTxtColor(DEFAULT_COLOR);
+			printf("You've Fully Healed");
+			
 			SHOW_CUR(true);
 
 		}
@@ -492,10 +491,10 @@ void Shop_Menu(CHARACTER *PC, CHARACTER *MOB, int idx, bool *isTown)
 			CLEAR_MSG(true);
 			CUR_MOVE(2, 13);
 			SetTxtColor(LIGHTPURPLE);
-			printf("트레이너(♂) : 와우 체력을 키우러 왔어, Boy♂?");
+			printf("Trainer(%c) : Wow! Come to get Shaped, Boy%c?", 11, 11);
 			Sleep(150);
 			CUR_MOVE(2, 14);
-			printf("Train for +1 HP: cost - %d Xp. Continue? (Y/N)", PC->Hp_MAX);
+			printf("Max HP +1 For %d XP (Y / N)", PC->Hp_MAX);
 
 			select = _getch();
 
@@ -508,7 +507,7 @@ void Shop_Menu(CHARACTER *PC, CHARACTER *MOB, int idx, bool *isTown)
 					CLEAR_MSG(true);
 					CUR_MOVE(2, 13);
 					SetTxtColor(LIGHTPURPLE);
-					printf("Trainer : come again with some more 'Exprence', Honey.");
+					printf("Trainer(%c) : You need more Exprience, Boy%c", 11, 11);
 
 					for (int i = 0; i < 3; i++)
 					{
@@ -531,7 +530,7 @@ void Shop_Menu(CHARACTER *PC, CHARACTER *MOB, int idx, bool *isTown)
 					CLEAR_MSG(true);
 					SetTxtColor(LIGHTPURPLE);
 					CUR_MOVE(2, 13);
-					printf("Trainer : You're... becoming type of mine. :D");
+					printf("Trainer(%c) : You're just My type, Boy%c", 11, 3);
 					CUR_MOVE(10, 12);
 					SHOW_CUR(false);
 					for (int i = 0; i < cost_HP; i++)
@@ -592,7 +591,7 @@ void Shop_Menu(CHARACTER *PC, CHARACTER *MOB, int idx, bool *isTown)
 				CLEAR_MSG(true);
 				CUR_MOVE(2, 13);
 				SetTxtColor(LIGHTPURPLE);
-				printf("Trainer : That makes me down, baby.");
+				printf("트레이너(♂) : 그것 참 아쉽네...Boy♂ (츄릅) ");
 			}
 			break;
 			}
@@ -602,7 +601,7 @@ void Shop_Menu(CHARACTER *PC, CHARACTER *MOB, int idx, bool *isTown)
 			CLEAR_MSG(true);
 			CUR_MOVE(2, 13);
 			SetTxtColor(LIGHTPURPLE);
-			printf("Trainer: Yeah! that's the muscles i love!");
+			printf("트레이너(♂) : 우흥♡ 좋은 근육이야♡ 완벽해♥");
 			SetTxtColor(DEFAULT_COLOR);
 		}
 		break;
@@ -611,7 +610,7 @@ void Shop_Menu(CHARACTER *PC, CHARACTER *MOB, int idx, bool *isTown)
 		CLEAR_MSG(true);
 		CUR_MOVE(2, 13);
 		SetTxtColor(BLUE);
-		printf("Blacksmith: Some othertime later.");
+		printf("대장장이 : 준비중 일세! 나중에 다시 오게나!");
 		SetTxtColor(DEFAULT_COLOR);
 	}
 	break;
@@ -621,17 +620,17 @@ void Shop_Menu(CHARACTER *PC, CHARACTER *MOB, int idx, bool *isTown)
 		CLEAR_MSG(true);
 		CUR_MOVE(2, 13);
 		SetTxtColor(YELLOW);
-		printf("Reception: All we have now is Rat hunting.");
+		printf("접수원 : 지금은 쥐떼 퇴치 의뢰밖에 없네요.");
 		CUR_MOVE(2, 14);
-		printf("           Good luck to you!");
+		printf("         그럼, 잘 부탁드려요.");
 		SetTxtColor(DEFAULT_COLOR);
 
-		//Todo : Monster Selection
+		//몬스터 선택 (미구현)
 
-		// Set target Info		
+		//대상 정보 세팅			
 		MOB = SetMob();
 
-		// show target info
+		//대상 정보 세팅
 		CUR_MOVE(28, 7);
 		printf("TARGET");
 		CUR_MOVE(35, 8);
@@ -656,7 +655,7 @@ void Shop_Menu(CHARACTER *PC, CHARACTER *MOB, int idx, bool *isTown)
 void Update_Info(CHARACTER* PC, CHARACTER* MOB)
 {
 
-	// calculate HP
+	//HP 계산
 	double MOB_cur = MOB->Hp;
 	double MOB_max = MOB->Hp_MAX;
 
@@ -677,13 +676,13 @@ void Update_Info(CHARACTER* PC, CHARACTER* MOB)
 
 
 
-	// for debugging
+	//디버깅용
 #ifdef DEBUG
 
 	CUR_MOVE(1, 17);
 	printf("                                                      ");
 	CUR_MOVE(1, 17);
-	printf("PC remain : %d, %dcell \nMOB remain: %d, %dcell", PC->Hp, PC_HP_ON, MOB->Hp, MOB_HP_ON);
+	printf("PC remain : %d, %d칸\nMOB remain: %d, %d칸", PC->Hp, PC_HP_ON, MOB->Hp, MOB_HP_ON);
 
 #endif DEBUG	
 
@@ -701,14 +700,14 @@ void Update_Info(CHARACTER* PC, CHARACTER* MOB)
 
 	SetTxtColor(LIGHTRED);
 	for (int pc_cur = 0; pc_cur < PC_HP_ON; pc_cur++)
-		printf("%c", 178);
+		printf("%c", 219);
 
 
 	CUR_MOVE(28, 3);
 
 	SetTxtColor(LIGHTRED);
 	for (int mob_cur = 0; mob_cur < MOB_HP_ON; mob_cur++)
-		printf("%c", 178);
+		printf("%c", 219);
 
 	SetTxtColor(RED);
 	if (MOB->Hp <= 0)
@@ -730,24 +729,24 @@ void GAME_OVER()
 	printf("Y O U   D I E D !!");
 	Sleep(300);
 	CUR_MOVE(15, 12);
-	printf("~ Game Over ~\n");
+	printf("Quitting Game\n");
 	tmp = _getch();
 	fseek(stdin, 0, SEEK_END);
-	
+
 	_fcloseall();
 
 }
 
 int main()
-{	
+{
 	bool isAttack_PC = 0;
 	bool isAttack_MOB = 0;
 	bool isTown = 1;
 
-	// Set console window size (needs <windows.h>)
+	// 화면 크기를 세팅 (<windows.h> 필수)
 	system("mode con cols=54 lines=17");
-	// Change title of the Consle window
-	system("title Oneway Life v.0.8");
+	// 타이틀바 제목 변경
+	system("title 외길인생 v.0.8");
 	SetTxtColor(WHITE);
 
 	showTitle();
@@ -755,8 +754,8 @@ int main()
 	FILE *fpSave = NULL;
 	char mapname[64] = { "0" };
 
-	// check the .sav file.
-	fopen_s(&fpSave, ".mud.sav", "r");
+	//세이브 파일이 있는지 검사
+	fopen_s(&fpSave, ".\\dat\\mud.sav", "r");
 
 	if (fpSave == NULL)
 	{
@@ -771,33 +770,33 @@ int main()
 
 	PC->Atk = -999;
 
-	// Set Characters
+	//캐릭터 세팅
 	PC = SetPlayer();
 	MOB = SetMob();
 
 	if (PC->Atk == -999)
 	{
 		system("cls");
-		printf("Worng File data. Quitting Game.");
+		printf("파일이 잘못되었습니다. 게임을 종료합니다.");
 		return 0;
-	}	
+	}
 
 	while (1)
 	{
 		if (isTown)
 		{
-			strcpy_s(mapname, sizeof(mapname), ".\\Town.map");
-			ShowMap(mapname);			
+			strcpy_s(mapname, sizeof(mapname), ".\\dat\\Town.map");
+			ShowMap(mapname);
 			drawInfo(*PC, *MOB, true);
 
 
-			//Set Player position
-			
+			//플레이어 기본 위치 세팅
+
 			MOVE_CHAR(&*PC);
 
 			while (isTown)
-			{				
-				
+			{
+
 				Sleep(100);
 				CUR_MOVE(PC->Cur_pos_x, PC->Cur_pos_y);
 
@@ -813,17 +812,17 @@ int main()
 					input = _getch();
 					switch (input)
 					{
-					case 72:	// up arrow.
-						if (PC->Cur_pos_x >=9 && PC->Cur_pos_x <= 12)	//church
+					case 72:	//상.
+						if (PC->Cur_pos_x >= 9 && PC->Cur_pos_x <= 12)	//교회
 							Shop_Menu(&*PC, &*MOB, 0, &isTown);
-						else if(PC->Cur_pos_x >= 17 && PC->Cur_pos_x <= 22)	//gym
+						else if (PC->Cur_pos_x >= 17 && PC->Cur_pos_x <= 22)	//체육관
 							Shop_Menu(&*PC, &*MOB, 1, &isTown);
-						else if (PC->Cur_pos_x >= 27 && PC->Cur_pos_x <= 32)	// blackSmith
+						else if (PC->Cur_pos_x >= 27 && PC->Cur_pos_x <= 32)	//대장간
 							Shop_Menu(&*PC, &*MOB, 2, &isTown);
-						else if (PC->Cur_pos_x >= 37 && PC->Cur_pos_x <= 44)	// Guild
+						else if (PC->Cur_pos_x >= 37 && PC->Cur_pos_x <= 44)	//의뢰소
 							Shop_Menu(&*PC, &*MOB, 3, &isTown);
 						break;
-					case 75:	//left arrow
+					case 75:	//좌
 						if (PC->Next_pos_x > 3)
 						{
 							PC->Next_pos_x -= 1;
@@ -840,13 +839,13 @@ int main()
 						MOVE_CHAR(&*PC);
 						CUR_MOVE(PC->Cur_pos_x, PC->Cur_pos_y);
 						break;
-					case 77:	// right arrow
+					case 77:	//우
 						if (PC->Next_pos_x == (SCREEN_COL - 4))
 						{
 							isTown = false;
 							PC->Cur_pos_x = 5;
 							PC->Next_pos_x = 5;
-							Battle_Result = BATTLE_CONTINUE; 
+							Battle_Result = BATTLE_CONTINUE;
 #ifdef DEBUG
 
 							CUR_MOVE(8, 17);
@@ -856,7 +855,7 @@ int main()
 						}
 						else if (PC->Next_pos_x < (SCREEN_COL - 3))
 						{
-							PC->Next_pos_x += 1;	
+							PC->Next_pos_x += 1;
 							CLEAR_MSG(true);
 #ifdef DEBUG
 							CUR_MOVE(8, 17);
@@ -867,14 +866,14 @@ int main()
 						}
 						else
 						{
-							PC->Next_pos_x = SCREEN_COL - 3;	
+							PC->Next_pos_x = SCREEN_COL - 3;
 #ifdef DEBUG
 							CUR_MOVE(8, 17);
 							printf("x = %d(next : %d), y = %d, isTown %d", PC->Cur_pos_x, PC->Next_pos_x, PC->Cur_pos_y, isTown);
 #endif DEBUG
 							MOVE_CHAR(&*PC);
 							CUR_MOVE(PC->Cur_pos_x, PC->Cur_pos_y);
-						}						
+						}
 						break;
 					default:
 						break;
@@ -884,27 +883,25 @@ int main()
 				{
 					switch (input)
 					{
-					case 'S':	//Save and Quit
-						// To do
+					case 'S':	//저장하고 종료
 						break;
-					case 'Q':	//Quit Without Saving
-						// Do something if needed.
-						break;					
+					case 'Q':	//그냥 종료
+						break;
 					}
-				}	
-				
+				}
+
 			}
 		}
-		else if(Battle_Result == BATTLE_CONTINUE)
+		else if (Battle_Result == BATTLE_CONTINUE)
 		{
 			isTown = false;
-			// Set Map name
-			strcpy_s(mapname, sizeof(mapname), ".\\Battle.map");
+			//맵 이름 세팅
+			strcpy_s(mapname, sizeof(mapname), ".\\dat\\Battle.map");
 
-			// Set Monster
+			//몬스터 세팅
 			MOB = SetMob();
-			
-			// draw base screen
+
+			//기본 화면 그리기;
 			system("cls");
 			ShowMap(mapname);
 			drawInfo(*PC, *MOB, false);
@@ -914,7 +911,7 @@ int main()
 			while (Battle_Result == BATTLE_CONTINUE)
 			{
 				CUR_MOVE(PC->Cur_pos_x, PC->Cur_pos_y);
-				// Reset loop variables
+				//루프 초기화
 				isAttack_PC = 0;
 				isAttack_MOB = 0;
 
@@ -933,9 +930,9 @@ int main()
 					input = _getch();
 					switch (input)
 					{
-					case 72:	// up.
+					case 72:	//상.
 						break;
-					case 75:	// left
+					case 75:	//좌
 						if (PC->Next_pos_x > 1)
 						{
 							PC->Next_pos_x -= 1;
@@ -943,7 +940,7 @@ int main()
 						else
 							PC->Next_pos_x = 1;
 						break;
-					case 77:	// right
+					case 77:	//우
 						if (PC->Next_pos_x < SCREEN_COL - 2)
 						{
 							PC->Next_pos_x += 1;
@@ -964,11 +961,11 @@ int main()
 				{
 					switch (input)
 					{
-					case 'S':	// save and quit
+					case 'S':	//저장하고 종료
 						break;
-					case 'Q':	// Quit without save ing
+					case 'Q':	//그냥 종료
 						break;
-					case 'R':	// Redraw Screen
+					case 'R':	//현재 화면 다시 그리기
 						break;
 					}
 				}
@@ -1011,12 +1008,12 @@ int main()
 			isTown = true;
 			PC->Cur_pos_x = 3;
 			PC->Next_pos_x = 3;
-			
+
 		}
 	}
-	//Todo : Add Ending Scene
+	//엔딩();
 
-	// Free memory. exiting game.
+	//종료 처리
 	free(PC);
 	free(MOB);
 
